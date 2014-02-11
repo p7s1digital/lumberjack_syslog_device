@@ -5,19 +5,18 @@ SYSLOG_FILE = ENV["SYSLOG_FILE"] || "/var/log/system.log"
 # Round about way of reading syslog by following it using the command line and looking in the output.
 def read_syslog(progname = "lumberjack_syslog_device_spec")
   message_id = rand(0xFFFFFFFFFFFFFFFF)
-  Syslog.open("lumberjack_syslog_device_spec") do |syslog|
-    syslog.mask = Syslog::LOG_UPTO(Syslog::LOG_DEBUG)
-    syslog.warning("************** start #{message_id}")
-  end
+  Syslog.open("lumberjack_syslog_device_spec") unless Syslog.opened?
+  Syslog.mask = Syslog::LOG_UPTO(Syslog::LOG_DEBUG)
+  Syslog.warning("************** start #{message_id}")
+  Syslog.close 
   
   yield
   
   Syslog.close if Syslog.opened?
-  Syslog.open("lumberjack_syslog_device_spec") do |syslog|
-    syslog.mask = Syslog::LOG_UPTO(Syslog::LOG_DEBUG)
-    syslog.warning("************** end #{message_id}")
-  end
-  
+  Syslog.open("lumberjack_syslog_device_spec") 
+  Syslog.mask = Syslog.LOG_UPTO(Syslog::LOG_DEBUG)
+  Syslog.warning("************** end #{message_id}")
+  Syslog.close
   # Loop over the syslog file until the start and end markers are found
   8.times do
     retval = nil
