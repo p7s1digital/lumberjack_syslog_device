@@ -19,9 +19,6 @@ module Lumberjack
     PERCENT = '%'
     ESCAPED_PERCENT = '%%'
     
-    @@lock = Mutex.new
-    
-    
     # Create a new SyslogDevice. The options control how messages are written to syslog.
     #
     # The template can be specified using the <tt>:template</tt> option. This can
@@ -75,9 +72,9 @@ module Lumberjack
     
     def close
       flush
-      @@lock.synchronize do
-        Syslog.close if Syslog.opened?
-      end
+      Syslog.close if Syslog.opened?
+    rescue RuntimeError
+      # Someone else has previously closed the syslog connection
     end
     
     private
