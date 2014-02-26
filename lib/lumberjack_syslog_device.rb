@@ -7,14 +7,25 @@ module Lumberjack
   # <tt>:close_connection => true</tt> to the constructor. Otherwise, the connection will be kept
   # open between +write+ calls.
   class SyslogDevice < Device
-    SEVERITY_MAP = {
-      Severity::DEBUG => Syslog::LOG_DEBUG,
-      Severity::INFO => Syslog::LOG_INFO,
-      Severity::WARN => Syslog::LOG_WARNING,
-      Severity::ERROR => Syslog::LOG_ERR,
-      Severity::FATAL => Syslog::LOG_CRIT,
-      Severity::UNKNOWN => Syslog::LOG_ALERT
-    }
+    if Kernel.const_defined?( :Padrino )
+      SEVERITY_MAP = {
+        Padrino::Logger::Levels[:devel] => Syslog::LOG_DEBUG,
+        Padrino::Logger::Levels[:debug] => Syslog::LOG_DEBUG,
+        Padrino::Logger::Levels[:info]  => Syslog::LOG_INFO,
+        Padrino::Logger::Levels[:warn]  => Syslog::LOG_WARNING,
+        Padrino::Logger::Levels[:error] => Syslog::LOG_ERR,
+        Padrino::Logger::Levels[:fatal] => Syslog::LOG_CRIT
+      }
+    else
+      SEVERITY_MAP = {
+        Severity::DEBUG   => Syslog::LOG_DEBUG,
+        Severity::INFO    => Syslog::LOG_INFO,
+        Severity::WARN    => Syslog::LOG_WARNING,
+        Severity::ERROR   => Syslog::LOG_ERR,
+        Severity::FATAL   => Syslog::LOG_CRIT,
+        Severity::UNKNOWN => Syslog::LOG_ALERT
+      }
+    end
     
     PERCENT = '%'
     ESCAPED_PERCENT = '%%'
