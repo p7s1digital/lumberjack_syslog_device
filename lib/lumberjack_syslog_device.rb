@@ -7,29 +7,26 @@ module Lumberjack
   # <tt>:close_connection => true</tt> to the constructor. Otherwise, the connection will be kept
   # open between +write+ calls.
   class SyslogDevice < Device
-    if Kernel.const_defined?( :Padrino )
-      SEVERITY_MAP = {
-        Padrino::Logger::Levels[:devel] => Syslog::LOG_DEBUG,
-        Padrino::Logger::Levels[:debug] => Syslog::LOG_DEBUG,
-        Padrino::Logger::Levels[:info]  => Syslog::LOG_INFO,
-        Padrino::Logger::Levels[:warn]  => Syslog::LOG_WARNING,
-        Padrino::Logger::Levels[:error] => Syslog::LOG_ERR,
-        Padrino::Logger::Levels[:fatal] => Syslog::LOG_CRIT
-      }
-    else
-      SEVERITY_MAP = {
-        Severity::DEBUG   => Syslog::LOG_DEBUG,
-        Severity::INFO    => Syslog::LOG_INFO,
-        Severity::WARN    => Syslog::LOG_WARNING,
-        Severity::ERROR   => Syslog::LOG_ERR,
-        Severity::FATAL   => Syslog::LOG_CRIT,
-        Severity::UNKNOWN => Syslog::LOG_ALERT
-      }
-    end
+    SEVERITY_MAP = {
+      Severity::DEBUG   => Syslog::LOG_DEBUG,
+      Severity::INFO    => Syslog::LOG_INFO,
+      Severity::WARN    => Syslog::LOG_WARNING,
+      Severity::ERROR   => Syslog::LOG_ERR,
+      Severity::FATAL   => Syslog::LOG_CRIT,
+      Severity::UNKNOWN => Syslog::LOG_ALERT
+    }
     
     PERCENT = '%'
     ESCAPED_PERCENT = '%%'
-    
+
+    def self.severity_map
+      @severity_map || SEVERITY_MAP
+    end
+
+    def self.severity_map=( new_severity_map )
+      @severity_map = new_severity_map
+    end
+
     # Create a new SyslogDevice. The options control how messages are written to syslog.
     #
     # The template can be specified using the <tt>:template</tt> option. This can
@@ -78,7 +75,7 @@ module Lumberjack
     
     def write(entry)
       message = @template.call(entry).gsub(PERCENT, ESCAPED_PERCENT)
-      Syslog.log(SEVERITY_MAP[entry.severity], message)
+      Syslog.log(self.class.severity_map[entry.severity], message)
     end
     
     def close
@@ -96,9 +93,7 @@ module Lumberjack
       options ||= (Syslog::LOG_PID | Syslog::LOG_CONS)
 
       if Syslog.opened?
-        if Syslog.ident == @syslog_identity && @syslog_facility == Syslog.facility && @syslog_options == Syslog.options
-          return Syslog
-        end
+        return Syslog if syslog_settings_match?
         Syslog.close
       end
       Syslog.open( progname, options, facility)
@@ -107,6 +102,12 @@ module Lumberjack
       @syslog_facility = facility
       @syslog_options = options
       nil
+    end
+
+    def syslog_settings_match?
+      Syslog.ident == @syslog_identity && 
+        @syslog_facility == Syslog.facility && 
+        @syslog_options == Syslog.options
     end
   end
 end
