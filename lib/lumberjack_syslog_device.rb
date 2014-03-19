@@ -74,9 +74,8 @@ module Lumberjack
     end
     
     def write(entry)
-      entry.severity = self.class.severity_map[ entry.severity ]
       message = @template.call(entry).gsub(PERCENT, ESCAPED_PERCENT)
-      Syslog.log(entry.severity, message)
+      Syslog.log(self.class.severity_map[entry.severity], message)
     end
     
     def close
