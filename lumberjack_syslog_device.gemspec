@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.email = ['bdurand@embellishedvisions.com']
   s.homepage = "http://github.com/bdurand/lumberjack_mongo_device"
 
-  s.files = ['README.rdoc', 'VERSION', 'Rakefile', 'MIT_LICENSE'] +  Dir.glob('lib/**/*'), Dir.glob('spec/**/*')
+  s.files = ['README.rdoc', 'VERSION', 'Rakefile', 'MIT_LICENSE'] +  Dir.glob('lib/**/*')
   s.require_path = 'lib'
   
   s.has_rdoc = true
